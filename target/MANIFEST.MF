@@ -1,7 +1,0 @@
-Manifest-Version: 1.0
-Built-By: Igor
-Class-Path: lib/gson-2.2.4.jar
-Created-By: IntelliJ IDEA
-Build-Jdk: 1.8.0_25
-Main-Class: com.seriouscompany.supagraphview.main.Main
-
