@@ -17,11 +17,12 @@ public class GeneticAlgorithm implements Algorithm {
     private Graph bestSolution = null;
     private Graph prevSolution = null;
     private double mutateChance = 0.15;
-    private int populationSize = 100;
+    private int populationSize = 500;
 
     private ArrayList<Graph> population = new ArrayList<>();
     private ArrayList<Graph> currentPopulation = new ArrayList<>();
     private ArrayList<Graph> children = new ArrayList<>();
+    private static final Random rnd = new Random();
 
     public GeneticAlgorithm(int[][] graphMatrix, Method method, int maxX, int maxY) {
         this.graphMatrix = graphMatrix;
@@ -34,17 +35,15 @@ public class GeneticAlgorithm implements Algorithm {
         double midFitness = 0;
         for (Graph solution : population) {
             double fitness = getFitness(solution);
-            if(fitness < 1) {
+            if (fitness < 1) {
                 midFitness += fitness;
             }
         }
         return midFitness / population.size();
     }
 
-    private int getChance(Graph solution) {
-        double midFitness = getMiddleFitness();
+    private int getChance(Graph solution, final double midFitness) {
         double chance = getFitness(solution) / midFitness;
-        Random rnd = new Random();
         int randomIndex = 0;
         if (chance < 1) {
             randomIndex = rnd.nextInt(101) + 1;
@@ -53,14 +52,14 @@ public class GeneticAlgorithm implements Algorithm {
             } else {
                 return 0;
             }
-        } else if (chance < 2 && chance >= 1) {
+        } else if (chance < 2) {
             randomIndex = rnd.nextInt(101) + 1;
             if (randomIndex < (chance - 1) * 100) {
                 return 2;
             } else {
                 return 1;
             }
-        } else if(chance < 3 && chance >= 2) {
+        } else if (chance < 3) {
             randomIndex = rnd.nextInt(101) + 1;
             if (randomIndex < (chance - 2) * 100) {
                 return 3;
@@ -72,7 +71,7 @@ public class GeneticAlgorithm implements Algorithm {
     }
 
     private void getFirstPopulation() {
-        if(!population.isEmpty()) {
+        if (!population.isEmpty()) {
             population.clear();
         }
         for (int i = 0; i < populationSize; i++) {
@@ -82,15 +81,17 @@ public class GeneticAlgorithm implements Algorithm {
         }
     }
 
+
     private void doChoose() {
-        Random rnd = new Random();
+        double midFitness = getMiddleFitness();
         while (currentPopulation.size() < populationSize) {
 //            System.out.println("Doing choose.");
 //            System.out.println("Current population size = " + currentPopulation.size());
-            choose();
+            choose(midFitness);
         }
+
         while (children.size() < populationSize) {
-            int randomIndex = getRandomIndex(-1);
+            final int randomIndex = rnd.nextInt(populationSize);
             Graph currentParent = currentPopulation.get(randomIndex);
             mainCross(currentParent, getStepParent(randomIndex));
         }
@@ -101,21 +102,24 @@ public class GeneticAlgorithm implements Algorithm {
 //                System.out.println("Was MUTATE.");
             }
         }
+
         for (Graph value : population) {
-            children.add(Graph.newInstance(value));
+            children.add(value);
         }
         Collections.sort(children, new Comparator<Graph>() {
             @Override
             public int compare(Graph o1, Graph o2) {
-                if (getFitness(o1) > getFitness(o2)) {
+                double o1Fitness = getFitness(o1);
+                double o2Fitness = getFitness(o2);
+                if (o1Fitness > o2Fitness) {
                     return -1;
-                }
-                if (getFitness(o1) < getFitness(o2)) {
+                } else if (o1Fitness < o2Fitness) {
                     return 1;
                 }
                 return 0;
             }
         });
+
     }
 
     private void setNewPopulation() {
@@ -130,10 +134,10 @@ public class GeneticAlgorithm implements Algorithm {
         bestSolution = population.get(0);
     }
 
-    private void choose() {
-        int randomIndex = getRandomIndex(-1);
+    private void choose(final double midFitness) {
+        int randomIndex = rnd.nextInt(populationSize);
         Graph currentParent = population.get(randomIndex);
-        switch (getChance(currentParent)) {
+        switch (getChance(currentParent, midFitness)) {
             case 3: {
                 currentPopulation.add(currentParent);
             }
@@ -148,10 +152,9 @@ public class GeneticAlgorithm implements Algorithm {
     }
 
     private int getRandomIndex(int randomIndex) {
-        Random rnd = new Random();
         int newRandomIndex = rnd.nextInt(populationSize);
         if (randomIndex >= 0) {
-            while (newRandomIndex > randomIndex || newRandomIndex < randomIndex) {
+            while (newRandomIndex == randomIndex) {
 //                System.out.println("Doing random.");
                 newRandomIndex = rnd.nextInt(populationSize);
             }
@@ -176,18 +179,19 @@ public class GeneticAlgorithm implements Algorithm {
     }
 
     private boolean checkChild(Graph child) {
-        List<int[]> coordinates = child.graphCoordinates;
+        final List<int[]> coordinates = child.graphCoordinates;
         for (int i = 0; i < coordinates.size(); i++) {
-            for (int j = 0; j < coordinates.size(); j++) {
-                int[] getValue = coordinates.get(i);
-                int[] value = coordinates.get(j);
-                if (getValue != null) {
-                    if (i != j && getValue[0] == value[0] && getValue[1] == value[1]) {
+            final int[] getValue = coordinates.get(i);
+            if (getValue != null) {
+                for (int j = 0; j < i; j++) {
+                    final int[] value = coordinates.get(j);
+                    if (child.checkCricles(getValue[0], getValue[1], value[0], value[1])) {
                         return false;
                     }
                 }
             }
         }
+        child.setEdgeFactors();
         child.checkAndFixPoints();
         return true;
     }
@@ -201,7 +205,7 @@ public class GeneticAlgorithm implements Algorithm {
 
     private double getNoramlFitness(Graph solution) {
         final double normalFitness = getFitness(solution);
-        return normalFitness == 3 ? 0 : 1/normalFitness;
+        return normalFitness == 3 ? 0 : 1 / normalFitness;
     }
 
     private void doStepAlgorithm() {
@@ -224,11 +228,13 @@ public class GeneticAlgorithm implements Algorithm {
         int i = 0;
         while (true) {
             doStepAlgorithm();
-            if (getFitness(bestSolution) > getFitness(prevBestSolution)) {
+            final double bestSolutionFitness = getFitness(bestSolution);
+            final double prevBestSolutionFitness = getFitness(prevBestSolution);
+            if (bestSolutionFitness > prevBestSolutionFitness) {
                 prevBestSolution = Graph.newInstance(bestSolution);
                 i = 0;
             } else {
-                if (getFitness(bestSolution) == getFitness(prevBestSolution)) {
+                if (bestSolutionFitness == getFitness(prevBestSolution)) {
                     i++;
                 } else {
                     i = 0;
@@ -236,7 +242,7 @@ public class GeneticAlgorithm implements Algorithm {
             }
             /*System.out.println("Prev = " + getNoramlFitness(prevBestSolution));
             System.out.println("Best = " + getNoramlFitness(bestSolution));*/
-            if (i > 10) {
+            if (i > 20) {
                 return prevBestSolution;
             }
         }

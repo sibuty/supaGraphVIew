@@ -1,5 +1,7 @@
 package com.seriouscompany.supagraphview.model;
 
+import com.seriouscompany.supagraphview.main.Main;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +18,7 @@ public class Graph {
     public int maxX;
     public int maxY;
     public int badPoint = -1;
+    private final Random rnd = new Random();
 
     public Graph() {
     }
@@ -34,7 +37,6 @@ public class Graph {
         if (!graphCoordinates.isEmpty()) {
             graphCoordinates.clear();
         }
-        Random rnd = new Random();
         for (int i = 0; i < graph.length; i++) {
             int[] element = new int[2];
             element[0] = 15 + rnd.nextInt(maxX);
@@ -76,19 +78,18 @@ public class Graph {
 
     public static Graph cross(Graph parent1, Graph parent2, boolean first) {
         Graph result = null;
-        if(first) {
+        if (first) {
             result = newInstance(parent1);
-            for(int i = parent2.graphCoordinates.size()/2; i < parent2.graphCoordinates.size(); i++) {
+            for (int i = parent2.graphCoordinates.size() / 2; i < parent2.graphCoordinates.size(); i++) {
                 result.graphCoordinates.set(i, parent2.graphCoordinates.get(i));
             }
         } else {
             result = newInstance(parent2);
-            for(int i = 0; i < parent1.graphCoordinates.size()/2; i++) {
+            for (int i = 0; i < parent1.graphCoordinates.size() / 2; i++) {
                 result.graphCoordinates.set(i, parent1.graphCoordinates.get(i));
             }
         }
-        if(result != null) {
-            result.setEdgeFactors();
+        if (result != null) {
             return result;
         }
         return null;
@@ -96,7 +97,6 @@ public class Graph {
 
     public void checkAndFixPoints() {
         int i = 0;
-        Random rnd = new Random();
         while (!checkPoints()) {
             graphCoordinates.set(badPoint, null);
             setEdgeFactors();
@@ -126,9 +126,9 @@ public class Graph {
 
     public boolean containsCoordinates(int[] value) {
         for (int i = 0; i < graphCoordinates.size(); i++) {
-            int[] getValue = graphCoordinates.get(i);
+            final int[] getValue = graphCoordinates.get(i);
             if (getValue != null) {
-                if (getValue[0] == value[0] && getValue[1] == value[1]) {
+                if (checkCricles(getValue[0], getValue[1], value[0], value[1])) {
                     return true;
                 }
             }
@@ -138,7 +138,6 @@ public class Graph {
 
     public void mutation() {
 //        System.out.println("BEFORE MUT " + getIntersectionFactors());
-        Random rnd = new Random();
         int i = rnd.nextInt(graphCoordinates.size());
         int[] element = new int[2];
         graphCoordinates.set(i, null);
@@ -157,9 +156,9 @@ public class Graph {
 
     public boolean checkPoints() {
         for (int i = 0; i < graph.length; i++) {
-            for (int j = 0; j < edgeFactors.size(); j++) {
-                int[] getValue = graphCoordinates.get(i);
-                if (getValue != null) {
+            final int[] getValue = graphCoordinates.get(i);
+            if (getValue != null) {
+                for (int j = 0; j < edgeFactors.size(); j++) {
                     double[] factors = edgeFactors.get(j);
                     if (factors[2] != getValue[0]
                             && factors[4] != getValue[0]
@@ -177,24 +176,29 @@ public class Graph {
         return true;
     }
 
-    private void setEdgeFactors() {
+    public boolean checkCricles(double x1, double y1, double x2, double y2) {
+        return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) < 300;
+    }
+
+    public void setEdgeFactors() {
         edgeFactors.clear();
-        List<Integer> points = new ArrayList<>();
         for (int i = 0; i < graphCoordinates.size(); i++) {
-            for (int j = 0; j < graphCoordinates.size(); j++) {
-                if (graph[i][j] == 1 && i != j && !points.contains(j)
-                        && graphCoordinates.get(i) != null && graphCoordinates.get(j) != null) {
-                    points.add(i);
-                    double[] element = new double[8];
-                    element[0] = (double) graphCoordinates.get(j)[0] - graphCoordinates.get(i)[0];
-                    element[1] = (double) graphCoordinates.get(j)[1] - graphCoordinates.get(i)[1];
-                    element[2] = (double) graphCoordinates.get(i)[0];
-                    element[3] = (double) graphCoordinates.get(i)[1];
-                    element[4] = (double) graphCoordinates.get(j)[0];
-                    element[5] = (double) graphCoordinates.get(j)[1];
-                    element[6] = i;
-                    element[7] = j;
-                    edgeFactors.add(element);
+            final int[] leftGraphCoordinates = graphCoordinates.get(i);
+            if (leftGraphCoordinates != null) {
+                for (int j = 0; j < i; j++) {
+                    final int[] rightGraphCoordinates = graphCoordinates.get(j);
+                    if (i != j && rightGraphCoordinates != null && (graph[i][j] == 1 || graph[j][i] == 1)) {
+                        double[] element = new double[8];
+                        element[0] = (double) rightGraphCoordinates[0] - leftGraphCoordinates[0];
+                        element[1] = (double) rightGraphCoordinates[1] - leftGraphCoordinates[1];
+                        element[2] = (double) leftGraphCoordinates[0];
+                        element[3] = (double) leftGraphCoordinates[1];
+                        element[4] = (double) rightGraphCoordinates[0];
+                        element[5] = (double) rightGraphCoordinates[1];
+                        element[6] = i;
+                        element[7] = j;
+                        edgeFactors.add(element);
+                    }
                 }
             }
         }
@@ -202,11 +206,11 @@ public class Graph {
 
     private boolean checkPoint(int[] element) {
         for (int i = 0; i < edgeFactors.size(); i++) {
-            double[] factors = edgeFactors.get(i);
+            final double[] factors = edgeFactors.get(i);
             if (containsCoordinates(element)) {
                 return false;
             }
-            if (factors[1] * (element[0] - factors[2]) == (element[1] - factors[3]) * factors[0]) {
+            if ((factors[1] * (element[0] - factors[2]) == (element[1] - factors[3]) * factors[0]) && !checkFactor(factors, element[0], element[1])) {
                 return false;
             }
             if (checkCircle(factors[2], factors[3], factors[4], factors[5], element[0], element[1])) {
@@ -217,16 +221,16 @@ public class Graph {
     }
 
     private boolean checkCircle(double x1, double y1, double x2, double y2, double xC, double yC) {
-        double _x1 = x1 - xC;
-        double _x2 = x2 - xC;
-        double _y1 = y1 - yC;
-        double _y2 = y2 - yC;
+        final double _x1 = x1 - xC;
+        final double _x2 = x2 - xC;
+        final double _y1 = y1 - yC;
+        final double _y2 = y2 - yC;
 
-        double dx = _x2 - _x1;
-        double dy = _y2 - _y1;
-        double a = dx * dx + dy * dy;
-        double b = 2 * (_x1 * dx + _y1 * dy);
-        double c = _x1 * _x1 + _y1 * _y1 - 100.0;
+        final double dx = _x2 - _x1;
+        final double dy = _y2 - _y1;
+        final double a = dx * dx + dy * dy;
+        final double b = 2 * (_x1 * dx + _y1 * dy);
+        final double c = _x1 * _x1 + _y1 * _y1 - 100.0;
 
         if (-b < 0) {
             return (c < 0);
@@ -243,7 +247,7 @@ public class Graph {
         double max = 0;
         for (int i = 0; i < edgeFactors.size(); i++) {
             double[] factor = edgeFactors.get(i);
-            double step = Math.sqrt(Math.pow(factor[4] - factor[2], 2) + Math.pow(factor[5] - factor[3], 2));
+            double step = Math.sqrt((factor[4] - factor[2]) * (factor[4] - factor[2]) + (factor[5] - factor[3]) * (factor[5] - factor[3]));
             if (min == 0 || max == 0) {
                 min = step;
                 max = step;
@@ -263,7 +267,7 @@ public class Graph {
         double result = 0.0;
         for (int i = 0; i < edgeFactors.size(); i++) {
             double[] factor = edgeFactors.get(i);
-            result += Math.sqrt(Math.pow(factor[4] - factor[2], 2) + Math.pow(factor[5] - factor[3], 2));
+            result += Math.sqrt((factor[4] - factor[2]) * (factor[4] - factor[2]) + (factor[5] - factor[3]) * (factor[5] - factor[3]));
         }
         return (float) result;
     }
@@ -295,27 +299,25 @@ public class Graph {
 
     public int getIntersectionFactors() {
         int result = 0;
-        ArrayList<Integer> arrayList = new ArrayList<>();
         for (int i = 0; i < edgeFactors.size(); i++) {
             double[] factor1 = edgeFactors.get(i);
-            for (int j = 0; j < edgeFactors.size(); j++) {
-                if (i != j && !arrayList.contains(j)) {
-                    double[] factor2 = edgeFactors.get(j);
-                    double A1 = factor1[3] - factor1[5];
-                    double B1 = factor1[4] - factor1[2];
-                    double C1 = factor1[2] * factor1[5] - factor1[4] * factor1[3];
+            for (int j = 0; j < i; j++) {
+                double[] factor2 = edgeFactors.get(j);
+                double A1 = factor1[3] - factor1[5];
+                double B1 = factor1[4] - factor1[2];
+                double C1 = factor1[2] * factor1[5] - factor1[4] * factor1[3];
 
-                    double A2 = factor2[3] - factor2[5];
-                    double B2 = factor2[4] - factor2[2];
-                    double C2 = factor2[2] * factor2[5] - factor2[4] * factor2[3];
+                double A2 = factor2[3] - factor2[5];
+                double B2 = factor2[4] - factor2[2];
+                double C2 = factor2[2] * factor2[5] - factor2[4] * factor2[3];
 
-                    double D1 = A1 * B2 - A2 * B1;
+                double D1 = A1 * B2 - A2 * B1;
 //                    double D2 = A1 * C2 - A2 * C1;
 //                    double D3 = B1 * C2 - B2 * C1;
 
-                    if (D1 != 0.0) {
-                        double x = -((C1 * B2 - C2 * B1) / (A1 * B2 - A2 * B1));
-                        double y = -((A1 * C2 - A2 * C1) / (A1 * B2 - A2 * B1));
+                if (D1 != 0.0) {
+                    double x = -((C1 * B2 - C2 * B1) / (A1 * B2 - A2 * B1));
+                    double y = -((A1 * C2 - A2 * C1) / (A1 * B2 - A2 * B1));
                        /* System.out.println();
                         System.out.println();
                         System.out.println();
@@ -327,13 +329,11 @@ public class Graph {
                         System.out.println();
                         System.out.println();
                         System.out.println();*/
-                        if (checkFactor(factor1, x, y) && checkFactor(factor2, x, y)) {
-                            if (!arrayList.contains(i)) {
-                                arrayList.add(i);
-                            }
-                            result++;
-                        }
+                    if (checkFactor(factor1, x, y) && checkFactor(factor2, x, y)) {
+
+                        result++;
                     }
+                }
 //                    double v1 = (factor2[4] - factor2[2]) * (factor1[3] - factor2[3])
 //                            - (factor2[5] - factor1[3]) * (factor1[2] - factor2[2]);
 //                    double v2 = (factor2[4] - factor2[2]) * (factor1[5] - factor2[3]) -
@@ -349,7 +349,6 @@ public class Graph {
 //                            result++;
 //                        }
 //                    }
-                }
             }
         }
         return result;
