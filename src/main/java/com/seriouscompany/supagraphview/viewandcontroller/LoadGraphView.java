@@ -45,6 +45,7 @@ public class LoadGraphView extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 JFileChooser fileOpen = new JFileChooser();
+                fileOpen.setCurrentDirectory(new File("./src/main/resources"));
                 if (fileOpen.showDialog(null, "Открыть файл") == JFileChooser.APPROVE_OPTION) {
                     File file = fileOpen.getSelectedFile();
                     label.setText(file.getName() + " загружен");
