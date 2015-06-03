@@ -83,7 +83,7 @@ public class GeneticAlgorithm implements Algorithm {
 
 
     private void doChoose() {
-        double midFitness = getMiddleFitness();
+        final double midFitness = getMiddleFitness();
         while (currentPopulation.size() < populationSize) {
 //            System.out.println("Doing choose.");
 //            System.out.println("Current population size = " + currentPopulation.size());
@@ -109,8 +109,8 @@ public class GeneticAlgorithm implements Algorithm {
         Collections.sort(children, new Comparator<Graph>() {
             @Override
             public int compare(Graph o1, Graph o2) {
-                double o1Fitness = getFitness(o1);
-                double o2Fitness = getFitness(o2);
+                final double o1Fitness = getFitness(o1);
+                final double o2Fitness = getFitness(o2);
                 if (o1Fitness > o2Fitness) {
                     return -1;
                 } else if (o1Fitness < o2Fitness) {
@@ -234,7 +234,7 @@ public class GeneticAlgorithm implements Algorithm {
                 prevBestSolution = Graph.newInstance(bestSolution);
                 i = 0;
             } else {
-                if (bestSolutionFitness == getFitness(prevBestSolution)) {
+                if (bestSolutionFitness == prevBestSolutionFitness) {
                     i++;
                 } else {
                     i = 0;

@@ -114,6 +114,22 @@ public class Graph {
         }
     }
 
+    public void setEdgeFactor(int point, int[] element) {
+        for(double[] factor : edgeFactors) {
+            if(factor[6] == point) {
+                factor[2] = (double) element[0];
+                factor[3] = (double) element[1];
+                factor[0] = factor[4] - factor[2];
+                factor[1] = factor[5] - factor[3];
+            } else if(factor[7] == point) {
+                factor[4] = (double) element[0];
+                factor[5] = (double) element[1];
+                factor[0] = factor[4] - factor[2];
+                factor[1] = factor[5] - factor[3];
+            }
+        }
+    }
+
     public void printFactors() {
         System.out.println(edgeFactors.size());
         for (double[] value : edgeFactors) {
