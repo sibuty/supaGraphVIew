@@ -204,9 +204,6 @@ public class DrawGraph extends JFrame {
                                     method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);*/
                                     Algorithm algorithm = new AnnealingMethod(graph, method, 1, 1000);
                                     drawGraph(algorithm.getBestSolution());
-                                    //run algorithm
-                                    //algrotim.setMatrix(Main.graphMatrix);
-                                    //drawGraph(algorithm.getGraph());
                                 } else {
                                     JOptionPane.showMessageDialog(DrawGraph.this,
                                             "Загрузите граф.",
