@@ -1,12 +1,11 @@
 package com.seriouscompany.supagraphview.viewandcontroller;
 
+import com.seriouscompany.supagraphview.main.Main;
+import com.seriouscompany.supagraphview.model.Graph;
 import com.seriouscompany.supagraphview.model.algorithms.Algorithm;
 import com.seriouscompany.supagraphview.model.algorithms.AnnealingMethod;
 import com.seriouscompany.supagraphview.model.algorithms.GeneticAlgorithm;
-import com.seriouscompany.supagraphview.model.algorithms.methods.ConsistentConcessions;
 import com.seriouscompany.supagraphview.model.algorithms.methods.Convolution;
-import com.seriouscompany.supagraphview.main.Main;
-import com.seriouscompany.supagraphview.model.Graph;
 import com.seriouscompany.supagraphview.model.algorithms.methods.Method;
 
 import javax.swing.*;
@@ -24,6 +23,7 @@ import java.math.RoundingMode;
 public class DrawGraph extends JFrame {
     private JPanel contentPanel;
     private final GraphView graphView;
+    private JButton startVisible;
 
 
     public DrawGraph() {
@@ -105,6 +105,7 @@ public class DrawGraph extends JFrame {
         graphView.repaint();
         Runtime r = Runtime.getRuntime();
         System.out.println("Memory used = " + new BigDecimal((float) (r.totalMemory() - r.freeMemory()) / 8 / 1024 / 1024).setScale(2, RoundingMode.UP).floatValue() + "Mbs");
+        startVisible.setEnabled(true);
     }
 
     private void initCheckBoxes(final JPanel criterionPanel) {
@@ -167,68 +168,73 @@ public class DrawGraph extends JFrame {
         c.gridy = 3;
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.EAST;
-        JButton startVisible = new JButton("Ок");
+        startVisible = new JButton("Ок");
         criterions.add(startVisible, c);
 
         startVisible.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!factorsEqual.isSelected()
-                        && !factorsLenght.isSelected()
-                        && !factorsIntersection.isSelected()) {
-                    JOptionPane.showMessageDialog(DrawGraph.this,
-                            "Выберите хотя бы один критерий.",
-                            "Ошибка ввода",
-                            JOptionPane.ERROR_MESSAGE);
-                } else {
-                    if (!factorsEqualField.getText().isEmpty()
-                            || !factorsLenghtField.getText().isEmpty()
-                            || !factorsIntersectionField.getText().isEmpty()) {
-                        try {
-                            int equalPrior = factorsEqual.isSelected() ? Integer.parseInt(factorsEqualField.getText()) : 0;
-                            int lenghtPrior = factorsLenght.isSelected() ? Integer.parseInt(factorsLenghtField.getText()) : 0;
-                            int intersectionPrior = factorsIntersection.isSelected() ? Integer.parseInt(factorsIntersectionField.getText()) : 0;
-                            if (genetic.isSelected()) {
-                                Method method = new Convolution(null);
-                                method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);
-                                Algorithm algorithm =
-                                        new GeneticAlgorithm(Main.graphMatrix, method,graphView.getMaxX(), graphView.getMaxY());
-                                drawGraph(algorithm.getBestSolution());
-                            } else if (fire.isSelected()) {
-                                if (Main.graphMatrix != null) {
-                                    Graph graph = new Graph(Main.graphMatrix, graphView.getMaxX(), graphView.getMaxY());
-                                    graph.generateCoordinates();
-                                    Convolution method = new Convolution(graph);
+                if (startVisible.isEnabled()) {
+                    if (!factorsEqual.isSelected()
+                            && !factorsLenght.isSelected()
+                            && !factorsIntersection.isSelected()) {
+                        JOptionPane.showMessageDialog(DrawGraph.this,
+                                "Выберите хотя бы один критерий.",
+                                "Ошибка ввода",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        if (!factorsEqualField.getText().isEmpty()
+                                || !factorsLenghtField.getText().isEmpty()
+                                || !factorsIntersectionField.getText().isEmpty()) {
+                            try {
+                                startVisible.setEnabled(false);
+                                int equalPrior = factorsEqual.isSelected() ? Integer.parseInt(factorsEqualField.getText()) : 0;
+                                int lenghtPrior = factorsLenght.isSelected() ? Integer.parseInt(factorsLenghtField.getText()) : 0;
+                                int intersectionPrior = factorsIntersection.isSelected() ? Integer.parseInt(factorsIntersectionField.getText()) : 0;
+                                if (genetic.isSelected()) {
+                                    Method method = new Convolution(null);
                                     method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);
+                                    Algorithm algorithm =
+                                            new GeneticAlgorithm(Main.graphMatrix, method, graphView.getMaxX(), graphView.getMaxY());
+                                    drawGraph(algorithm.getBestSolution());
+                                } else if (fire.isSelected()) {
+                                    if (Main.graphMatrix != null) {
+                                        Graph graph = new Graph(Main.graphMatrix, graphView.getMaxX(), graphView.getMaxY());
+                                        graph.generateCoordinates();
+                                        Convolution method = new Convolution(graph);
+                                        method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);
                                     /*ConsistentConcessions method = new ConsistentConcessions(graph);
                                     method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);*/
-                                    Algorithm algorithm = new AnnealingMethod(graph, method, 1, 1000);
-                                    drawGraph(algorithm.getBestSolution());
-                                } else {
-                                    JOptionPane.showMessageDialog(DrawGraph.this,
-                                            "Загрузите граф.",
-                                            "Ошибка ввода",
-                                            JOptionPane.ERROR_MESSAGE);
+                                        Algorithm algorithm = new AnnealingMethod(graph, method, 1, 1000);
+                                        drawGraph(algorithm.getBestSolution());
+                                    } else {
+                                        JOptionPane.showMessageDialog(DrawGraph.this,
+                                                "Загрузите граф.",
+                                                "Ошибка ввода",
+                                                JOptionPane.ERROR_MESSAGE);
+                                        startVisible.setEnabled(false);
+                                    }
                                 }
-                            }
                             /*factorsEqualField.setText("");
                             factorsLenghtField.setText("");
                             factorsIntersectionField.setText("");
                             factorsEqual.setSelected(false);
                             factorsLenght.setSelected(false);
                             factorsIntersection.setSelected(false);*/
-                        } catch (Exception exp) {
-                            exp.printStackTrace();
+                            } catch (Exception exp) {
+                                exp.printStackTrace();
+                                JOptionPane.showMessageDialog(DrawGraph.this,
+                                        "Некорректные приоритеты выбранных критериев",
+                                        "Ошибка ввода",
+                                        JOptionPane.ERROR_MESSAGE);
+                                startVisible.setEnabled(false);
+                            }
+                        } else {
                             JOptionPane.showMessageDialog(DrawGraph.this,
-                                    "Некорректные приоритеты выбранных критериев",
+                                    "Введите приоритеты выбранных критериев",
                                     "Ошибка ввода",
                                     JOptionPane.ERROR_MESSAGE);
                         }
-                    } else {
-                        JOptionPane.showMessageDialog(DrawGraph.this,
-                                "Введите приоритеты выбранных критериев",
-                                "Ошибка ввода",
-                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }

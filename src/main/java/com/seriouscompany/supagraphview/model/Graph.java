@@ -76,21 +76,22 @@ public class Graph {
         return newInstance;
     }
 
-    public static Graph cross(Graph parent1, Graph parent2, boolean first) {
-        Graph result = null;
-        if (first) {
-            result = newInstance(parent1);
-            for (int i = parent2.graphCoordinates.size() / 2; i < parent2.graphCoordinates.size(); i++) {
-                result.graphCoordinates.set(i, parent2.graphCoordinates.get(i));
-            }
-        } else {
-            result = newInstance(parent2);
-            for (int i = 0; i < parent1.graphCoordinates.size() / 2; i++) {
-                result.graphCoordinates.set(i, parent1.graphCoordinates.get(i));
-            }
+    public static Graph[] cross(Graph parent1, Graph parent2) {
+        final Random rnd = new Random();
+        final Graph[] children = new Graph[2];
+        final Graph child1 = newInstance(parent1);
+        int pointCross = rnd.nextInt(parent1.graphCoordinates.size() - 1);
+        for (int i = pointCross; i < parent2.graphCoordinates.size(); i++) {
+            child1.graphCoordinates.set(i, parent2.graphCoordinates.get(i));
         }
-        if (result != null) {
-            return result;
+        final Graph child2 = newInstance(parent2);
+        for (int i = 0; i < pointCross; i++) {
+            child2.graphCoordinates.set(i, parent1.graphCoordinates.get(i));
+        }
+        if (child1 != null && child2 != null) {
+            children[0] = child1;
+            children[1] = child2;
+            return children;
         }
         return null;
     }
