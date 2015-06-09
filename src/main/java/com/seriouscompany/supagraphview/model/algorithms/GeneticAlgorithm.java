@@ -83,7 +83,7 @@ public class GeneticAlgorithm implements Algorithm {
 
 
     private void doChoose() {
-        double midFitness = getMiddleFitness();
+        final double midFitness = getMiddleFitness();
         while (currentPopulation.size() < populationSize) {
 //            System.out.println("Doing choose.");
 //            System.out.println("Current population size = " + currentPopulation.size());
@@ -93,7 +93,7 @@ public class GeneticAlgorithm implements Algorithm {
         while (children.size() < populationSize) {
             final int randomIndex = rnd.nextInt(populationSize);
             Graph currentParent = currentPopulation.get(randomIndex);
-            mainCross(currentParent, getStepParent(randomIndex));
+            cross(currentParent, getStepParent(randomIndex));
         }
         currentPopulation.clear();
         for (int i = 0; i < children.size(); i++) {
@@ -109,8 +109,8 @@ public class GeneticAlgorithm implements Algorithm {
         Collections.sort(children, new Comparator<Graph>() {
             @Override
             public int compare(Graph o1, Graph o2) {
-                double o1Fitness = getFitness(o1);
-                double o2Fitness = getFitness(o2);
+                final double o1Fitness = getFitness(o1);
+                final double o2Fitness = getFitness(o2);
                 if (o1Fitness > o2Fitness) {
                     return -1;
                 } else if (o1Fitness < o2Fitness) {
@@ -166,15 +166,15 @@ public class GeneticAlgorithm implements Algorithm {
         return currentPopulation.get(getRandomIndex(randomIndex));
     }
 
-    private void mainCross(Graph parent1, Graph parent2) {
-        cross(parent1, parent2, true);
-        cross(parent1, parent2, false);
-    }
-
-    private void cross(Graph parent1, Graph parent2, boolean first) {
-        final Graph child = Graph.cross(parent1, parent2, first);
-        if (checkChild(child)) {
-            children.add(child);
+    private void cross(Graph parent1, Graph parent2) {
+        final Graph[] children = Graph.cross(parent1, parent2);
+        if(children != null) {
+            for(int i = 0; i < children.length; i++) {
+                final Graph child = children[0];
+                if (checkChild(child)) {
+                    this.children.add(child);
+                }
+            }
         }
     }
 
@@ -234,7 +234,7 @@ public class GeneticAlgorithm implements Algorithm {
                 prevBestSolution = Graph.newInstance(bestSolution);
                 i = 0;
             } else {
-                if (bestSolutionFitness == getFitness(prevBestSolution)) {
+                if (bestSolutionFitness == prevBestSolutionFitness) {
                     i++;
                 } else {
                     i = 0;

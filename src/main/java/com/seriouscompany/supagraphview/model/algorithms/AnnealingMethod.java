@@ -27,6 +27,7 @@ public class AnnealingMethod implements Algorithm {
     public Graph getBestSolution() {
         double minE = 0;
         double temperature = maxTemperature;
+        bestSolution.generateCoordinates();
         int i = 1;
         if (method instanceof Convolution) {
             method.setNewSolution(bestSolution);
