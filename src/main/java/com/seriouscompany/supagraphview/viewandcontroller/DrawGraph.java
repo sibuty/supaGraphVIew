@@ -189,22 +189,21 @@ public class DrawGraph extends JFrame {
                             try {
                                 startVisible.setEnabled(false);
                                 int equalPrior = factorsEqual.isSelected() ? Integer.parseInt(factorsEqualField.getText()) : 0;
-                                int lenghtPrior = factorsLenght.isSelected() ? Integer.parseInt(factorsLenghtField.getText()) : 0;
+                                int lengthPrior = factorsLenght.isSelected() ? Integer.parseInt(factorsLenghtField.getText()) : 0;
                                 int intersectionPrior = factorsIntersection.isSelected() ? Integer.parseInt(factorsIntersectionField.getText()) : 0;
                                 if (genetic.isSelected()) {
                                     Method method = new Convolution(null);
-                                    method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);
+                                    method.setPrioritiesCriterions(equalPrior, lengthPrior, intersectionPrior);
                                     Algorithm algorithm =
                                             new GeneticAlgorithm(Main.graphMatrix, method, graphView.getMaxX(), graphView.getMaxY());
                                     drawGraph(algorithm.getBestSolution());
                                 } else if (fire.isSelected()) {
                                     if (Main.graphMatrix != null) {
                                         Graph graph = new Graph(Main.graphMatrix, graphView.getMaxX(), graphView.getMaxY());
-                                        graph.generateCoordinates();
                                         Convolution method = new Convolution(graph);
-                                        method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);
+                                        method.setPrioritiesCriterions(equalPrior, lengthPrior, intersectionPrior);
                                     /*ConsistentConcessions method = new ConsistentConcessions(graph);
-                                    method.setPrioritiesCriterions(equalPrior, lenghtPrior, intersectionPrior);*/
+                                    method.setPrioritiesCriterions(equalPrior, lengthPrior, intersectionPrior);*/
                                         Algorithm algorithm = new AnnealingMethod(graph, method, 1, 1000);
                                         drawGraph(algorithm.getBestSolution());
                                     } else {
@@ -212,7 +211,7 @@ public class DrawGraph extends JFrame {
                                                 "Загрузите граф.",
                                                 "Ошибка ввода",
                                                 JOptionPane.ERROR_MESSAGE);
-                                        startVisible.setEnabled(false);
+                                        startVisible.setEnabled(true);
                                     }
                                 }
                             /*factorsEqualField.setText("");
@@ -227,7 +226,7 @@ public class DrawGraph extends JFrame {
                                         "Некорректные приоритеты выбранных критериев",
                                         "Ошибка ввода",
                                         JOptionPane.ERROR_MESSAGE);
-                                startVisible.setEnabled(false);
+                                startVisible.setEnabled(true);
                             }
                         } else {
                             JOptionPane.showMessageDialog(DrawGraph.this,
@@ -276,5 +275,37 @@ public class DrawGraph extends JFrame {
 
         criterionPanel.add(algorithmsSelect);
         criterionPanel.add(criterions);
+    }
+
+    private void exp1(Algorithm algorithm, Method method) {
+        double midTime = 0;
+        Graph solution = null;
+        for(int i = 0; i < 50; i++) {
+            long time1 = System.nanoTime();
+            solution = algorithm.getBestSolution();
+            method.setNewSolution(solution);
+            while (method.getE() > solution.getLamdaMin()) {
+                solution = algorithm.getBestSolution();
+                method.setNewSolution(solution);
+            }
+            midTime += (double) (System.nanoTime() - time1) / 1000000000;
+        }
+        System.out.println(midTime/50 + " seconds " + algorithm.getClass().toString());
+        drawGraph(solution);
+    }
+
+    private void exp2(Algorithm algorithm) {
+        double midTime = 0;
+        Graph solution = null;
+        for(int i = 0; i < 50; i++) {
+            long time1 = System.nanoTime();
+            solution = algorithm.getBestSolution();
+            while (solution.getLamdaEqual() > 0.2) {
+                solution = algorithm.getBestSolution();
+            }
+            midTime += (double) (System.nanoTime() - time1) / 1000000000;
+        }
+        System.out.println(midTime/50 + " seconds " + algorithm.getClass().toString());
+        drawGraph(solution);
     }
 }

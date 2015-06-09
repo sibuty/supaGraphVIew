@@ -289,6 +289,31 @@ public class Graph {
         return (float) result;
     }
 
+    public int getLamdaMin() {
+        return edgeFactors.size()/8;
+    }
+
+    public double getLamdaEqual() {
+        double min = 0;
+        double max = 0;
+        for (int i = 0; i < edgeFactors.size(); i++) {
+            double[] factor = edgeFactors.get(i);
+            double step = Math.sqrt((factor[4] - factor[2]) * (factor[4] - factor[2]) + (factor[5] - factor[3]) * (factor[5] - factor[3]));
+            if (min == 0 || max == 0) {
+                min = step;
+                max = step;
+            }
+            if (step < min) {
+                min = step;
+            } else {
+                if (step > max) {
+                    max = step;
+                }
+            }
+        }
+        return (max - min)/max;
+    }
+
     public boolean checkFactor(double[] factor, double x, double y) {
         boolean flag = false;
         if (factor[2] < factor[4]) {
