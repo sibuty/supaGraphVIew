@@ -1,9 +1,6 @@
 package com.seriouscompany.supagraphview.model;
 
-import com.seriouscompany.supagraphview.main.Main;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -12,7 +9,7 @@ import java.util.Random;
  */
 public class Graph {
 
-    public int[][] graph = null;
+    public int[][] graph;
     public List<int[]> graphCoordinates = new ArrayList<>();
     private List<double[]> edgeFactors = new ArrayList<>();
     public int maxX;
@@ -250,13 +247,13 @@ public class Graph {
         final double c = _x1 * _x1 + _y1 * _y1 - 100.0;
 
         if (-b < 0) {
-            return (c < 0);
+            return c < 0;
         }
-        if (-b < (2 * a)) {
-            return (4 * a * c - b * b < 0);
+        if (-b < 2 * a) {
+            return 4 * a * c - b * b < 0;
         }
 
-        return (a + b + c < 0);
+        return a + b + c < 0;
     }
 
     public float getDifferenceFactors() {
