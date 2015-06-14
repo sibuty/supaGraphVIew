@@ -24,6 +24,7 @@ public class DrawGraph extends JFrame {
     private JPanel contentPanel;
     private final GraphView graphView;
     private JButton startVisible;
+    private JButton test;
 
 
     public DrawGraph() {
@@ -171,6 +172,26 @@ public class DrawGraph extends JFrame {
         startVisible = new JButton("Ок");
         criterions.add(startVisible, c);
 
+        c.gridx = 4;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.NONE;
+        c.insets.left = 20;
+        test = new JButton("Статистика");
+        criterions.add(test, c);
+
+        test.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                java.awt.EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    TestingFrame window = new TestingFrame();
+                    window.init();
+                }
+            });
+            }
+        });
+
         startVisible.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -275,6 +296,38 @@ public class DrawGraph extends JFrame {
 
         criterionPanel.add(algorithmsSelect);
         criterionPanel.add(criterions);
+    }
+
+    public void getData(int count) {
+        int delta = 0;
+        boolean flag = true;
+        if(count >= Main.needCount) {
+            delta = (count - 1) / Main.needCount;
+            flag = false;
+        } else {
+            delta = Main.needCount / (count - 1);
+        }
+        generateMatrices(count, delta, flag);
+    }
+
+    public void generateMatrices(int count, int delta, boolean flag) {
+        int k = 0;
+        int c = 1;
+        int z = 1;
+        while (k < Main.needCount - 1) {
+            Main.generateMatrix(count, c);
+            z++;
+            if (flag) {
+                if (z > delta) {
+                    z = 1;
+                    c++;
+                }
+            } else {
+                c += delta;
+            }
+            k++;
+        }
+        Main.generateMatrix(count, count);
     }
 
     private void exp1(Algorithm algorithm, Method method) {
