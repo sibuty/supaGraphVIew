@@ -104,7 +104,7 @@ public class DrawGraph extends JFrame {
         graphView.setGraph(graph);
         graphView.repaint();
         Runtime r = Runtime.getRuntime();
-        System.out.println("Memory used = " + new BigDecimal((float) (r.totalMemory() - r.freeMemory()) / 8 / 1024 / 1024).setScale(2, RoundingMode.UP).floatValue() + "Mbs");
+        System.out.println("Memory used = " + new BigDecimal((float) (r.totalMemory() - r.freeMemory()) / 1024 / 1024).setScale(2, RoundingMode.UP).floatValue() + "Mbs");
         startVisible.setEnabled(true);
     }
 

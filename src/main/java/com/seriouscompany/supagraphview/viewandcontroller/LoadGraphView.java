@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -45,7 +46,7 @@ public class LoadGraphView extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 JFileChooser fileOpen = new JFileChooser();
-                fileOpen.setCurrentDirectory(new File("./src/main/resources"));
+                fileOpen.setCurrentDirectory(new File("./"));
                 if (fileOpen.showDialog(null, "Открыть файл") == JFileChooser.APPROVE_OPTION) {
                     File file = fileOpen.getSelectedFile();
                     label.setText(file.getName() + " загружен");
